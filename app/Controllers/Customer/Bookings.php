@@ -21,7 +21,7 @@ class Bookings extends BaseController
         $this->bookingSeatModel = new BookingSeatModel();
         $this->showModel = new ShowModel();
         $this->screenModel = new ScreenModel();
-        helper(['form', 'url']);
+        helper(['form', 'url', 'email']);
     }
 
     /**
@@ -84,6 +84,16 @@ class Bookings extends BaseController
         $numberOfSeats = count($seats);
         $totalPrice = $numberOfSeats * $show['price'];
 
+        // --- Simulated Payment Gateway Integration ---
+        // In a real-world application, you would integrate with a payment gateway here.
+        // For this demo, we'll assume the payment is always successful.
+        $paymentSuccess = true;
+        
+        if (!$paymentSuccess) {
+            return redirect()->back()->with('error', 'Payment failed. Please try again.');
+        }
+        // --- End of Payment Simulation ---
+
         // Start a transaction for data integrity
         $this->bookingModel->db->transBegin();
 
@@ -110,6 +120,9 @@ class Bookings extends BaseController
 
             // Commit the transaction
             $this->bookingModel->db->transCommit();
+            
+            // Send confirmation email
+            $this->_sendConfirmationEmail($userId, $bookingId);
 
             return redirect()->to(base_url('my-bookings'))->with('success', 'Booking successful!');
 
@@ -132,5 +145,28 @@ class Bookings extends BaseController
         echo view('templates/header');
         echo view('customer/bookings/list', $data);
         echo view('templates/footer');
+    }
+    
+    /**
+     * Simulates sending a confirmation email.
+     */
+    private function _sendConfirmationEmail($userId, $bookingId)
+    {
+        // For a real application, you would fetch user and booking data here
+        // and use a library like CodeIgniter's Email service to send a real email.
+        $email = \Config\Services::email();
+
+        $email->setFrom(config('Email')->fromEmail, config('Email')->fromName);
+        // In a real application, you'd get the user's email from the database
+        $email->setTo('user@example.com'); 
+        $email->setSubject('Booking Confirmation #' . $bookingId);
+        $email->setMessage('Thank you for your booking! Your booking ID is: ' . $bookingId);
+
+        // This will simulate sending the email.
+        if ($email->send(false)) {
+            log_message('info', 'Email for booking ' . $bookingId . ' sent successfully.');
+        } else {
+            log_message('error', 'Email for booking ' . $bookingId . ' failed to send.');
+        }
     }
 }

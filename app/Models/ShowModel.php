@@ -35,4 +35,15 @@ class ShowModel extends Model
                     ->orderBy('show_time', 'ASC')
                     ->findAll();
     }
+    
+    // This is the new method to get a single show's details
+    public function getShowWithDetails(int $id)
+    {
+        return $this->select('shows.*, movies.title as movie_title, screens.name as screen_name, screens.cinema_id, cinemas.name as cinema_name')
+                    ->join('movies', 'movies.id = shows.movie_id')
+                    ->join('screens', 'screens.id = shows.screen_id')
+                    ->join('cinemas', 'cinemas.id = screens.cinema_id')
+                    ->where('shows.id', $id)
+                    ->first();
+    }
 }

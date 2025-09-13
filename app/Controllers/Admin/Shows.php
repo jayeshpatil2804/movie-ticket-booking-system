@@ -21,6 +21,7 @@ class Shows extends BaseController
         $this->showModel = new ShowModel();
         $this->screenModel = new ScreenModel();
         $this->cinemaModel = new CinemaModel();
+        helper(['form']);
     }
 
     public function index()
@@ -37,7 +38,8 @@ class Shows extends BaseController
     {
         $data = [
             'movies' => $this->movieModel->findAll(),
-            'cinemas' => $this->cinemaModel->findAll(), // Fetch all cinemas
+            'cinemas' => $this->cinemaModel->findAll(),
+            'validation' => \Config\Services::validation()
         ];
         echo view('templates/admin_header');
         echo view('admin/shows/form', $data);
@@ -56,6 +58,7 @@ class Shows extends BaseController
             'movies' => $this->movieModel->findAll(),
             'cinemas' => $this->cinemaModel->findAll(),
             'screens' => $this->screenModel->where('cinema_id', $show['cinema_id'])->findAll(),
+            'validation' => \Config\Services::validation()
         ];
         echo view('templates/admin_header');
         echo view('admin/shows/form', $data);
@@ -64,7 +67,10 @@ class Shows extends BaseController
     
     public function store()
     {
-        // ... (existing store method)
+        if (!$this->validate($this->showModel->getValidationRules())) {
+            return redirect()->back()->withInput()->with('validation', $this->validator);
+        }
+
         $data = $this->request->getPost();
         if ($this->showModel->save($data)) {
             return redirect()->to('admin/shows')->with('success', 'Show added successfully.');
@@ -75,7 +81,10 @@ class Shows extends BaseController
 
     public function update(int $id)
     {
-        // ... (existing update method)
+        if (!$this->validate($this->showModel->getValidationRules())) {
+            return redirect()->back()->withInput()->with('validation', $this->validator);
+        }
+
         $data = $this->request->getPost();
         if ($this->showModel->update($id, $data)) {
             return redirect()->to('admin/shows')->with('success', 'Show updated successfully.');
@@ -86,7 +95,6 @@ class Shows extends BaseController
 
     public function delete(int $id)
     {
-        // ... (existing delete method)
         $this->showModel->delete($id);
         return redirect()->to('admin/shows')->with('success', 'Show deleted successfully.');
     }

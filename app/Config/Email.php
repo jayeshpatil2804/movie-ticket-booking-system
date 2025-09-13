@@ -6,8 +6,9 @@ use CodeIgniter\Config\BaseConfig;
 
 class Email extends BaseConfig
 {
-    public string $fromEmail  = '';
-    public string $fromName   = '';
+    // A placeholder sender email address
+    public string $fromEmail  = 'no-reply@moviebookingsystem.com';
+    public string $fromName   = 'Movie Booking System';
     public string $recipients = '';
 
     /**
@@ -59,8 +60,8 @@ class Email extends BaseConfig
      * SMTP Encryption.
      *
      * @var string '', 'tls' or 'ssl'. 'tls' will issue a STARTTLS command
-     *             to the server. 'ssl' means implicit SSL. Connection on port
-     *             465 should set this to ''.
+     * to the server. 'ssl' means implicit SSL. Connection on port
+     * 465 should set this to ''.
      */
     public string $SMTPCrypto = 'tls';
 

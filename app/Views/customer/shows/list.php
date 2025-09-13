@@ -14,6 +14,8 @@
                             <strong>Price:</strong> $<?= esc($show['price']) ?>
                         </p>
                         <a href="<?= base_url('booking/create/' . $show['id']) ?>" class="btn btn-primary">Book Now</a>
+                    </div>
+                </div>
             </div>
         <?php endforeach; ?>
     </div>
