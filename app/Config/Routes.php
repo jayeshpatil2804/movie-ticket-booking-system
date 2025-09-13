@@ -53,6 +53,9 @@ $routes->group('admin', ['filter' => 'admin'], function ($routes) {
     $routes->post('cinemas/update/(:num)', 'Admin\Cinemas::update/$1');
     $routes->get('cinemas/delete/(:num)', 'Admin\Cinemas::delete/$1');
 
+// Temporary route to check database structure - REMOVE IN PRODUCTION
+$routes->get('check-movies', 'CheckTable::index');
+
     $routes->get('screens', 'Admin\Screens::index');
     $routes->get('screens/create', 'Admin\Screens::create');
     $routes->post('screens/store', 'Admin\Screens::store');
@@ -65,8 +68,12 @@ $routes->group('admin', ['filter' => 'admin'], function ($routes) {
 // These routes are protected by the 'auth' filter.
 $routes->group('', ['filter' => 'auth'], function ($routes) {
     // Booking-related routes
-    $routes->get('booking/create/(:num)', 'Customer\Bookings::create/$1');
-    $routes->post('booking/process', 'Customer\Bookings::processBooking');
+    $routes->get('booking', 'Customer\Booking::index');
+    $routes->get('booking/shows/(:num)', 'Customer\Booking::shows/$1');
+    $routes->get('booking/seats/(:num)', 'Customer\Booking::seats/$1');
+    $routes->post('booking/process', 'Customer\Booking::process');
+    $routes->get('booking/confirmation/(:any)', 'Customer\Booking::confirmation/$1');
+    $routes->get('booking/ticket/(:any)', 'Customer\Booking::ticket/$1');
     $routes->get('my-bookings', 'Customer\Bookings::list');
 });
 

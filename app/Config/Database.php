@@ -11,31 +11,52 @@ class Database extends Config
 {
     /**
      * The directory that holds the Migrations and Seeds directories.
+     *
+     * @var string
      */
-    public string $filesPath = APPPATH . 'Database' . DIRECTORY_SEPARATOR;
+    public $filesPath;
 
     /**
      * Lets you choose which connection group to use if no other is specified.
+     *
+     * @var string
      */
-    public string $defaultGroup = 'default';
+    public $defaultGroup;
+    
+    /**
+     * Constructor - Sets the filesPath and default database group
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        
+        // Initialize properties in the constructor
+        $this->filesPath = rtrim(APPPATH, '\\/') . DIRECTORY_SEPARATOR . 'Database' . DIRECTORY_SEPARATOR;
+        $this->defaultGroup = 'default';
+        
+        // Set default group for testing environment
+        if (defined('ENVIRONMENT') && ENVIRONMENT === 'testing') {
+            $this->defaultGroup = 'tests';
+        }
+    }
 
     /**
      * The default database connection.
      *
      * @var array<string, mixed>
      */
-    public array $default = [
+    public $default = [
         'DSN'          => '',
         'hostname'     => 'localhost',
-        'username'     => '',
+        'username'     => 'root',
         'password'     => '',
-        'database'     => '',
+        'database'     => 'movie_booking',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,
         'DBDebug'      => true,
         'charset'      => 'utf8mb4',
-        'DBCollat'     => 'utf8mb4_general_ci',
+        'DBCollat'     => 'utf8mb4_unicode_ci',
         'swapPre'      => '',
         'encrypt'      => false,
         'compress'     => false,
@@ -152,10 +173,6 @@ class Database extends Config
     //        'failover'   => [],
     //        'dateFormat' => [
     //            'date'     => 'Y-m-d',
-    //            'datetime' => 'Y-m-d H:i:s',
-    //            'time'     => 'H:i:s',
-    //        ],
-    //    ];
 
     /**
      * This database connection is used when running PHPUnit database tests.
@@ -189,15 +206,4 @@ class Database extends Config
         ],
     ];
 
-    public function __construct()
-    {
-        parent::__construct();
-
-        // Ensure that we always set the database group to 'tests' if
-        // we are currently running an automated test suite, so that
-        // we don't overwrite live data on accident.
-        if (ENVIRONMENT === 'testing') {
-            $this->defaultGroup = 'tests';
-        }
-    }
 }
