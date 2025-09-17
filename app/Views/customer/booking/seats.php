@@ -1,6 +1,4 @@
-<?= $this->section('css') ?>
-    <link rel="stylesheet" href="<?= base_url('assets/css/seat-selection.css') ?>">
-    <style>
+<style>
         .screen {
             height: 20px;
             background: #333;
@@ -32,27 +30,27 @@
         }
         
         .seat.available {
-            background-color: #e9ecef;
-            color: #495057;
-            border: 1px solid #dee2e6;
+            background-color: #28a745; /* Green for Available */
+            color: #fff;
+            border: 1px solid #28a745;
         }
         
         .seat.available:hover {
-            background-color: #c6cbd1;
+            background-color: #218838;
             transform: scale(1.1);
         }
         
         .seat.selected {
-            background-color: #28a745;
-            color: white;
-            border: 1px solid #28a745;
+            background-color: #0d6efd; /* Blue for Selected */
+            color: #fff;
+            border: 1px solid #0d6efd;
         }
         
         .seat.booked {
-            background-color: #dc3545;
-            color: white;
+            background-color: #dc3545; /* Red for Booked */
+            color: #fff;
             cursor: not-allowed;
-            opacity: 0.6;
+            opacity: 0.8;
         }
         
         .seat-gap {
@@ -77,8 +75,12 @@
             display: inline-flex;
             align-items: center;
         }
+
+        /* Additional helpers */
+        .price-details { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 20px; }
+        .seat-map-container { max-width: 600px; margin: 0 auto; overflow-x: auto; }
+        .seat-row { white-space: nowrap; }
     </style>
-<?= $this->endSection() ?>
 
 <div class="container mt-4">
     <nav aria-label="breadcrumb">
@@ -198,123 +200,10 @@
 <!-- Hidden form for submission -->
 <form id="bookingForm" action="<?= base_url('booking/process') ?>" method="post" style="display: none;">
     <input type="hidden" name="show_id" value="<?= $show['id'] ?>">
-    <input type="hidden" name="seats[]" id="seatsInput">
+    <input type="hidden" name="seats" id="seatsInput">
     <?= csrf_field() ?>
 </form>
 
-<style>
-    .screen {
-        height: 20px;
-        background: #333;
-        width: 70%;
-        margin: 0 auto 30px;
-        border-radius: 50% / 20%;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-    }
-    
-    .screen-preview {
-        color: #666;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-    
-    .seat {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 35px;
-        height: 35px;
-        margin: 0 2px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: bold;
-        transition: all 0.2s ease;
-    }
-    
-    .seat.available {
-        background-color: #e9ecef;
-        color: #495057;
-        border: 1px solid #dee2e6;
-    }
-    
-    .seat.available:hover {
-        background-color: #c6cbd1;
-        transform: scale(1.1);
-    }
-    
-    .seat.selected {
-        background-color: #28a745;
-        color: white;
-        border: 1px solid #28a745;
-    }
-    
-    .seat.booked {
-        background-color: #dc3545;
-        color: white;
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-    
-    .seat-gap {
-        width: 20px;
-        display: inline-block;
-    }
-    
-    .row-label {
-        width: 20px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        margin: 0 5px;
-    }
-    
-    .legend {
-        margin-top: 20px;
-    }
-    
-    .legend-item {
-        display: inline-flex;
-        align-items: center;
-        margin-right: 15px;
-    }
-    
-    .legend .seat {
-        margin-right: 5px;
-        cursor: default;
-    }
-    
-    .legend .seat:hover {
-        transform: none;
-    }
-    
-    #selectedSeatsList {
-        min-height: 24px;
-    }
-    
-    .price-details {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        margin-top: 20px;
-    }
-    
-    .seat-map-container {
-        max-width: 600px;
-        margin: 0 auto;
-        overflow-x: auto;
-    }
-    
-    .seat-row {
-        white-space: nowrap;
-    }
-</style>
-
-<script>
-<?= $this->section('scripts') ?>
-<script src="<?= base_url('assets/js/seat-selection.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize ticket price from PHP
@@ -337,7 +226,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const seatsInput = document.getElementById('seatsInput');
     const bookingForm = document.getElementById('bookingForm');
     
-    const ticketPrice = <?= $ticketPrice ?>;
     let selectedSeats = [];
     
     // Initialize from session storage if available
@@ -352,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function() {
         seat.addEventListener('click', () => {
             const seatNumber = seat.getAttribute('data-seat');
             
-            // Toggle seat selection
             const index = selectedSeats.indexOf(seatNumber);
             if (index === -1) {
                 selectedSeats.push(seatNumber);
@@ -361,10 +248,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedSeats.splice(index, 1);
                 seat.classList.remove('selected');
             }
-            
+
             // Update UI
             updateSelectedSeats();
-            
+
             // Save to session storage
             sessionStorage.setItem(`selectedSeats_${<?= $show['id'] ?>}`, JSON.stringify(selectedSeats));
         });
@@ -386,8 +273,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const amount = count * ticketPrice;
         
         ticketCount.textContent = count;
-        ticketAmount.textContent = amount.toFixed(2);
-        totalAmount.textContent = amount.toFixed(2);
+        // Format in INR
+        const formatter = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+        ticketAmount.textContent = formatter.format(amount);
+        totalAmount.textContent = formatter.format(amount);
         
         // Enable/disable proceed button
         proceedBtn.disabled = count === 0;

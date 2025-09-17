@@ -49,8 +49,8 @@
                         <ul class="nav nav-tabs" id="showDatesTab" role="tablist">
                             <?php $first = true; foreach ($showsByDate as $date => $dateShows): ?>
                                 <li class="nav-item">
-                                    <a class="nav-link <?= $first ? 'active' : '' ?>" id="date-<?= $date ?>-tab" data-toggle="tab" 
-                                       href="#date-<?= $date ?>" role="tab" aria-controls="date-<?= $date ?>" 
+                                    <a class="nav-link <?= $first ? 'active' : '' ?>" id="date-<?= $date ?>-tab" data-bs-toggle="tab"
+                                       href="#date-<?= $date ?>" role="tab" aria-controls="date-<?= $date ?>"
                                        <?= $first ? 'aria-selected="true"' : 'aria-selected="false"' ?>>
                                         <?= date('D, M j', strtotime($date)) ?>
                                     </a>
@@ -77,9 +77,10 @@
                                             <h6 class="text-muted"><?= esc($cinemaName) ?></h6>
                                             <div class="d-flex flex-wrap">
                                                 <?php foreach ($cinemaShows as $show): ?>
-                                                    <a href="<?= base_url("booking/seats/{$show['id']}") ?>" class="btn btn-outline-primary m-1">
-                                                        <?= date('g:i A', strtotime($show['show_time'])) ?>
-                                                        <small class="d-block"><?= esc($show['screen_name']) ?></small>
+                                                    <a href="<?= base_url("booking/seats/{$show['id']}") ?>" class="btn btn-outline-danger m-1 px-3 py-2 d-flex align-items-center gap-2">
+                                                        <span class="fw-bold"><?= date('g:i A', strtotime($show['show_time'])) ?></span>
+                                                        <span class="badge bg-danger-subtle text-danger border border-danger ms-2">₹<?= number_format($show['price'] ?? 200, 0) ?></span>
+                                                        <small class="d-block text-muted w-100 text-start lh-1"><?= esc($show['screen_name']) ?></small>
                                                     </a>
                                                 <?php endforeach; ?>
                                             </div>
@@ -106,27 +107,28 @@
     }
     
     .nav-tabs .nav-link.active {
-        color: #007bff;
+        color: #dc3545;
         background-color: #fff;
         border-color: #dee2e6 #dee2e6 #fff;
+        font-weight: 600;
     }
     
-    .btn-outline-primary {
+    .btn-outline-primary, .btn-outline-danger {
         min-width: 100px;
     }
     
-    .btn-outline-primary:hover {
-        background-color: #007bff;
-        color: white;
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff;
     }
 </style>
 
 <script>
-    // Enable Bootstrap tabs
+    // Enable Bootstrap 5 tabs
     document.addEventListener('DOMContentLoaded', function() {
-        var tabElms = [].slice.call(document.querySelectorAll('a[data-toggle="tab"]'));
-        tabElms.forEach(function(tabEl) {
-            new bootstrap.Tab(tabEl);
+        var triggerTabList = [].slice.call(document.querySelectorAll('#showDatesTab a[data-bs-toggle="tab"]'));
+        triggerTabList.forEach(function (triggerEl) {
+            new bootstrap.Tab(triggerEl);
         });
     });
 </script>

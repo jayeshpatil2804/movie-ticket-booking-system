@@ -8,7 +8,7 @@
         </div>
         <div class="mb-3">
             <label for="address" class="form-label">Address</label>
-            <textarea class="form-control" id="address" name="address" rows="3"><?= isset($cinema) ? $cinema['address'] : '' ?></textarea>
+            <textarea class="form-control" id="location" name="location" rows="3"><?= isset($cinema) ? $cinema['location'] : '' ?></textarea>
         </div>
         <button type="submit" class="btn btn-primary"><?= isset($cinema) ? 'Update' : 'Save' ?></button>
         <a href="<?= base_url('admin/cinemas') ?>" class="btn btn-secondary">Cancel</a>

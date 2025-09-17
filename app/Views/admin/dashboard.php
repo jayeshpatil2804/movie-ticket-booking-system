@@ -1,3 +1,81 @@
+<script>
+    // View modal logic
+    const modalHtml = `
+    <div class="modal fade" id="bookingViewModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Booking Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="bookingDetails">Loading...</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    const modalEl = document.getElementById('bookingViewModal');
+    let bsModal;
+    function ensureModal() {
+        if (!bsModal) {
+            bsModal = new bootstrap.Modal(modalEl);
+        }
+        return bsModal;
+    }
+
+    async function fetchBookingDetails(id) {
+        const res = await fetch('<?= base_url('admin/bookings/show') ?>/' + id);
+        return res.json();
+    }
+
+    function renderDetails(data) {
+        const seats = (data.seats || []).join(', ');
+        const dt = new Date(data.show_time);
+        return `
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div><strong>Booking #:</strong> ${data.booking_number}</div>
+            <div><strong>User:</strong> ${data.user_name || '-'} (${data.user_email || '-'})</div>
+            <div><strong>Status:</strong> ${data.status}</div>
+            <div><strong>Payment:</strong> ${data.payment_status}</div>
+          </div>
+          <div class="col-md-6">
+            <div><strong>Movie:</strong> ${data.movie_title}</div>
+            <div><strong>Cinema/Screen:</strong> ${data.cinema_name} / ${data.screen_name}</div>
+            <div><strong>Show Time:</strong> ${dt.toLocaleString()}</div>
+            <div><strong>Ticket Price:</strong> ₹${Number(data.ticket_price || 0).toFixed(0)}</div>
+          </div>
+          <div class="col-12">
+            <div><strong>Seats:</strong> ${seats || '-'}</div>
+            <div><strong>Total Amount:</strong> ₹${Number(data.total_amount || 0).toFixed(0)}</div>
+          </div>
+        </div>`;
+    }
+
+    document.querySelectorAll('.js-view').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            const container = document.getElementById('bookingDetails');
+            container.innerHTML = 'Loading...';
+            try {
+                const json = await fetchBookingDetails(id);
+                if (json.success) {
+                    container.innerHTML = renderDetails(json.data);
+                    ensureModal().show();
+                } else {
+                    showAlert('danger', json.message || 'Failed to load booking');
+                }
+            } catch (e) {
+                showAlert('danger', 'Network error');
+            }
+        });
+    });
+</script>
 <div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="row mb-4">
@@ -136,9 +214,10 @@
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">Recent Bookings</h6>
-                    <a href="#" class="btn btn-sm btn-primary">View All</a>
+                    <a href="<?= base_url('admin/bookings') ?>" class="btn btn-sm btn-primary">View All</a>
                 </div>
                 <div class="card-body">
+                    <div id="dashAlert" class="alert d-none" role="alert"></div>
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -147,6 +226,7 @@
                                     <th>Movie</th>
                                     <th>Date</th>
                                     <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -160,6 +240,13 @@
                                             <span class="badge bg-<?= $booking['status'] === 'confirmed' ? 'success' : 'warning' ?>">
                                                 <?= ucfirst($booking['status']) ?>
                                             </span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-secondary js-view" data-id="<?= (int)$booking['id'] ?>">View</button>
+                                                <button class="btn btn-outline-success js-confirm" data-id="<?= (int)$booking['id'] ?>" <?= $booking['status'] === 'confirmed' ? 'disabled' : '' ?>>Confirm</button>
+                                                <button class="btn btn-outline-danger js-delete" data-id="<?= (int)$booking['id'] ?>">Delete</button>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>

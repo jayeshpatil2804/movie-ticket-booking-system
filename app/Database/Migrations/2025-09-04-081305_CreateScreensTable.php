@@ -8,6 +8,11 @@ class CreateScreensTable extends Migration
 {
     public function up()
     {
+        // If the table already exists (e.g., from a previous run), skip creation
+        if ($this->db->tableExists('screens')) {
+            return;
+        }
+
         $this->forge->addField([
             'id' => [
                 'type' => 'INT',

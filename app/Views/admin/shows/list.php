@@ -25,8 +25,8 @@
                 <td><?= esc($show['movie_title']) ?></td>
                 <td><?= esc($show['cinema_name']) ?></td>
                 <td><?= esc($show['screen_name']) ?></td>
-                <td><?= date('F d, Y h:i A', strtotime(esc($show['show_time']))) ?></td>
-                <td>$<?= esc($show['price']) ?></td>
+                <td><?= date('M d, Y g:i A', strtotime(esc($show['show_time']))) ?></td>
+                <td>₹<?= number_format((float)($show['price'] ?? 0), 0) ?></td>
                 <td>
                     <a href="<?= base_url('admin/shows/edit/' . $show['id']) ?>" class="btn btn-sm btn-warning">Edit</a>
                     <a href="<?= base_url('admin/shows/delete/' . $show['id']) ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this show?');">Delete</a>

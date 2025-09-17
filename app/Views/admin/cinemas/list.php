@@ -12,7 +12,7 @@
             <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Address</th>
+                <th>Location</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -21,7 +21,7 @@
             <tr>
                 <td><?= $cinema['id'] ?></td>
                 <td><?= $cinema['name'] ?></td>
-                <td><?= $cinema['address'] ?></td>
+                <td><?= $cinema['location'] ?></td>
                 <td>
                     <a href="<?= base_url('admin/cinemas/edit/' . $cinema['id']) ?>" class="btn btn-warning btn-sm">Edit</a>
                     <a href="<?= base_url('admin/cinemas/delete/' . $cinema['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this cinema?');">Delete</a>

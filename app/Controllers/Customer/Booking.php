@@ -27,7 +27,60 @@ class Booking extends BaseController
         $this->bookingModel = new BookingModel();
         $this->screenModel = new ScreenModel();
         $this->cinemaModel = new CinemaModel();
-        helper(['form', 'url']);
+        helper(['form', 'url', 'text']);
+    }
+
+    /**
+     * Dummy payment page
+     */
+    public function payment($bookingNumber)
+    {
+        $booking = $this->bookingModel->select('bookings.*, movies.title as movie_title, shows.show_time, cinemas.name as cinema_name, screens.name as screen_name')
+                                    ->join('shows', 'shows.id = bookings.show_id')
+                                    ->join('movies', 'movies.id = shows.movie_id')
+                                    ->join('screens', 'screens.id = shows.screen_id')
+                                    ->join('cinemas', 'cinemas.id = screens.cinema_id')
+                                    ->where('bookings.booking_number', $bookingNumber)
+                                    ->first();
+
+        if (!$booking) {
+            return redirect()->to('/booking')->with('error', 'Booking not found.');
+        }
+
+        // If already completed, go to confirmation
+        if ($booking['payment_status'] === 'completed') {
+            return redirect()->to("/booking/confirmation/{$bookingNumber}");
+        }
+
+        // Seats for summary
+        $bookingSeatModel = new \App\Models\BookingSeatModel();
+        $seats = $bookingSeatModel->where('booking_id', $booking['id'])->findAll();
+
+        return view('templates/header', ['title' => 'Payment'])
+             . view('customer/booking/payment', [
+                 'booking' => $booking,
+                 'seats' => $seats,
+             ])
+             . view('templates/footer');
+    }
+
+    /**
+     * Dummy payment confirmation (marks booking as confirmed)
+     */
+    public function paymentConfirm($bookingNumber)
+    {
+        $booking = $this->bookingModel->where('booking_number', $bookingNumber)->first();
+        if (!$booking) {
+            return redirect()->to('/booking')->with('error', 'Booking not found.');
+        }
+
+        // Update booking status to confirmed and payment_status to completed
+        $this->bookingModel->update($booking['id'], [
+            'status' => 'confirmed',
+            'payment_status' => 'completed',
+        ]);
+
+        return redirect()->to("/booking/confirmation/{$bookingNumber}");
     }
 
     /**
@@ -40,24 +93,51 @@ class Booking extends BaseController
         $query = $db->query("SHOW COLUMNS FROM movies LIKE 'status'");
         $statusColumnExists = $query->getRow() !== null;
         
+        // Get featured movies with all necessary fields
+        $featuredMovies = $this->movieModel->select('*')
+            ->where('is_featured', 1)
+            ->orderBy('release_date', 'DESC')
+            ->findAll(4);
+            
+        // Get now showing movies with all necessary fields
+        $nowShowing = $statusColumnExists 
+            ? $this->movieModel->select('*')
+                ->where('status', 'now_showing')
+                ->orderBy('release_date', 'DESC')
+                ->findAll(8)
+            : $this->movieModel->select('*')
+                ->orderBy('release_date', 'DESC')
+                ->findAll(8);
+                
+        // Get coming soon movies with all necessary fields
+        $comingSoon = [];
+        if ($statusColumnExists) {
+            $comingSoon = $this->movieModel->select('*')
+                ->where('status', 'coming_soon')
+                ->orderBy('release_date', 'ASC')
+                ->findAll(4);
+        }
+        
         $data = [
-            'featuredMovies' => $this->movieModel->where('is_featured', 1)->findAll(4),
-            'nowShowing' => $statusColumnExists 
-                ? $this->movieModel->where('status', 'now_showing')->findAll(8)
-                : $this->movieModel->findAll(8), // Fallback to all movies if status column doesn't exist
-            'comingSoon' => $statusColumnExists 
-                ? $this->movieModel->where('status', 'coming_soon')->findAll(4)
-                : [], // Empty array if status column doesn't exist
+            'featuredMovies' => $featuredMovies,
+            'nowShowing' => $nowShowing,
+            'comingSoon' => $comingSoon,
             'pageTitle' => 'Movie Ticket Booking - Book Your Favorite Movies Online'
         ];
         
         return view('templates/header', [
                 'title' => 'Movie Ticket Booking',
-                'styles' => ['/assets/css/homepage.css']
+                'styles' => [
+                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css',
+                    '/assets/css/homepage.css'
+                ]
             ])
             . view('customer/booking/movies', $data)
             . view('templates/footer', [
-                'scripts' => ['/assets/js/homepage.js']
+                'scripts' => [
+                    'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js',
+                    '/assets/js/homepage.js'
+                ]
             ]);
     }
 
@@ -71,7 +151,7 @@ class Booking extends BaseController
             return redirect()->to('/booking')->with('error', 'Movie not found.');
         }
 
-        $shows = $this->showModel->select('shows.*, cinemas.name as cinema_name, screens.name as screen_name')
+        $shows = $this->showModel->select('shows.*, cinemas.name as cinema_name, screens.name as screen_name, shows.ticket_price as price')
                                 ->join('screens', 'screens.id = shows.screen_id')
                                 ->join('cinemas', 'cinemas.id = screens.cinema_id')
                                 ->where('movie_id', $movieId)
@@ -94,7 +174,7 @@ class Booking extends BaseController
      */
     public function seats($showId)
     {
-        $show = $this->showModel->select('shows.*, movies.title as movie_title, movies.poster, screens.name as screen_name, cinemas.name as cinema_name, screens.capacity')
+        $show = $this->showModel->select('shows.*, movies.title as movie_title, movies.poster_url, screens.name as screen_name, cinemas.name as cinema_name, screens.capacity')
                               ->join('movies', 'movies.id = shows.movie_id')
                               ->join('screens', 'screens.id = shows.screen_id')
                               ->join('cinemas', 'cinemas.id = screens.cinema_id')
@@ -108,6 +188,7 @@ class Booking extends BaseController
         // Get already booked seats for this show
         $bookedSeats = $this->bookingModel->getBookedSeats($showId);
         $bookedSeatNumbers = array_column($bookedSeats, 'seat_number');
+
         
         // Generate seat layout
         $seatLayout = [];
@@ -150,13 +231,10 @@ class Booking extends BaseController
         $isAjax = $this->request->isAJAX();
         
         try {
-            // Validate CSRF token
-            if (! $this->request->getPost($this->request->getPost('csrf_test_name'))) {
-                throw new \RuntimeException('Invalid CSRF token');
-            }
-            
+            // CSRF is handled by CI filters; proceed to validate input
             $showId = $this->request->getPost('show_id');
-            $seats = json_decode($this->request->getPost('seats'), true);
+            $seatsJson = $this->request->getPost('seats');
+            $seats = is_string($seatsJson) ? json_decode($seatsJson, true) : [];
             
             if (empty($showId) || empty($seats) || !is_array($seats)) {
                 throw new \RuntimeException('Invalid request data');
@@ -182,14 +260,14 @@ class Booking extends BaseController
             $db->transBegin();
             
             try {
-                // Create booking
+                // Create booking (pending until dummy payment success)
                 $bookingData = [
                     'user_id' => session()->get('user_id'),
                     'show_id' => $showId,
                     'booking_number' => 'BK' . time() . rand(1000, 9999),
                     'total_amount' => count($seats) * ($show['ticket_price'] ?? $this->ticketPrice),
-                    'status' => 'confirmed',
-                    'payment_status' => 'completed',
+                    'status' => 'pending',
+                    'payment_status' => 'pending',
                 ];
                 
                 $bookingId = $this->bookingModel->insert($bookingData);
@@ -212,17 +290,17 @@ class Booking extends BaseController
                 // Commit transaction
                 $db->transCommit();
                 
-                // Get booking details for confirmation
+                // Get booking details for next step
                 $booking = $this->bookingModel->find($bookingId);
                 
                 if ($isAjax) {
                     return $this->response->setJSON([
                         'success' => true,
-                        'redirect' => site_url("booking/confirmation/{$booking['booking_number']}")
+                        'redirect' => site_url("booking/payment/{$booking['booking_number']}")
                     ]);
                 }
                 
-                return redirect()->to("booking/confirmation/{$booking['booking_number']}");
+                return redirect()->to("booking/payment/{$booking['booking_number']}");
                 
             } catch (\Exception $e) {
                 $db->transRollback();
@@ -303,4 +381,5 @@ class Booking extends BaseController
         // For now, we'll just render a view that can be printed
         return view('customer/booking/ticket_pdf', $data);
     }
+
 }

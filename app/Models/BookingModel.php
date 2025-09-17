@@ -31,7 +31,7 @@ class BookingModel extends Model
         'show_id' => 'required|integer',
         'booking_number' => 'required|string|max_length[50]',
         'total_amount' => 'required|numeric',
-        'status' => 'required|in_list[pending,confirmed,cancelled]',
+        'status' => 'required|in_list[pending,confirmed,completed,cancelled]',
         'payment_status' => 'required|in_list[pending,completed,failed,refunded]'
     ];
 

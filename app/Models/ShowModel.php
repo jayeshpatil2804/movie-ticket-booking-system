@@ -10,7 +10,7 @@ class ShowModel extends Model
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
-    protected $allowedFields = ['movie_id', 'screen_id', 'show_time', 'price'];
+    protected $allowedFields = ['movie_id', 'screen_id', 'show_time', 'ticket_price', 'status']; // Updated to use 'ticket_price'
 
     // Dates
     protected $useTimestamps = true;
@@ -23,12 +23,12 @@ class ShowModel extends Model
         'movie_id'  => 'required|integer',
         'screen_id' => 'required|integer',
         'show_time' => 'required|valid_date',
-        'price'     => 'required|decimal',
+        'ticket_price' => 'required|decimal', // Updated to use 'ticket_price'
     ];
 
     public function getShowsWithDetails()
     {
-        return $this->select('shows.*, movies.title as movie_title, screens.name as screen_name, cinemas.name as cinema_name')
+        return $this->select('shows.*, movies.title as movie_title, screens.name as screen_name, cinemas.name as cinema_name, shows.ticket_price as price') // Added alias 'price' for the view
                     ->join('movies', 'movies.id = shows.movie_id')
                     ->join('screens', 'screens.id = shows.screen_id')
                     ->join('cinemas', 'cinemas.id = screens.cinema_id')
@@ -36,10 +36,9 @@ class ShowModel extends Model
                     ->findAll();
     }
     
-    // This is the new method to get a single show's details
     public function getShowWithDetails(int $id)
     {
-        return $this->select('shows.*, movies.title as movie_title, screens.name as screen_name, screens.cinema_id, cinemas.name as cinema_name')
+        return $this->select('shows.*, movies.title as movie_title, screens.name as screen_name, screens.cinema_id, cinemas.name as cinema_name, shows.ticket_price as price') // Added alias 'price' for the view
                     ->join('movies', 'movies.id = shows.movie_id')
                     ->join('screens', 'screens.id = shows.screen_id')
                     ->join('cinemas', 'cinemas.id = screens.cinema_id')

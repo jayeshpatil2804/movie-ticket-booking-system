@@ -3,8 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Movie Booking System</title>
+    <title><?= esc($title ?? 'Movie Booking System') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <?php if (!empty($styles) && is_array($styles)): ?>
+        <?php foreach ($styles as $style): ?>
+            <link rel="stylesheet" href="<?= esc($style) ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
     <style>
         body { padding-top: 5rem; }
     </style>
@@ -21,6 +27,14 @@
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="/">Home</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= base_url('booking') ?>">Movies</a>
+                </li>
+                <?php if(session()->get('isLoggedIn')): ?>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= base_url('my-bookings') ?>">My Bookings</a>
+                </li>
+                <?php endif; ?>
             </ul>
             <ul class="navbar-nav">
                 <?php if(session()->get('isLoggedIn')): ?>

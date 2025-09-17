@@ -4,13 +4,14 @@ namespace App\Database\Migrations;
 
 use CodeIgniter\Database\Migration;
 
-class CreateBookedSeatsTable extends Migration
+class CreateSeatLocksTable extends Migration
 {
     public function up()
     {
-        if ($this->db->tableExists('booked_seats')) {
+        if ($this->db->tableExists('seat_locks')) {
             return;
         }
+
         $this->forge->addField([
             'id' => [
                 'type' => 'INT',
@@ -18,23 +19,26 @@ class CreateBookedSeatsTable extends Migration
                 'unsigned' => true,
                 'auto_increment' => true,
             ],
-            'booking_id' => [
-                'type' => 'INT',
-                'constraint' => 11,
-                'unsigned' => true,
-            ],
             'show_id' => [
                 'type' => 'INT',
                 'constraint' => 11,
                 'unsigned' => true,
+                'null' => false,
+            ],
+            'user_id' => [
+                'type' => 'INT',
+                'constraint' => 11,
+                'unsigned' => true,
+                'null' => true,
             ],
             'seat_number' => [
                 'type' => 'VARCHAR',
                 'constraint' => 10,
+                'null' => false,
             ],
-            'price' => [
-                'type' => 'DECIMAL',
-                'constraint' => '10,2',
+            'locked_until' => [
+                'type' => 'DATETIME',
+                'null' => false,
             ],
             'created_at' => [
                 'type' => 'DATETIME',
@@ -45,16 +49,13 @@ class CreateBookedSeatsTable extends Migration
                 'null' => true,
             ],
         ]);
-
         $this->forge->addKey('id', true);
-        $this->forge->addForeignKey('booking_id', 'bookings', 'id', 'CASCADE', 'CASCADE');
-        $this->forge->addForeignKey('show_id', 'shows', 'id', 'CASCADE', 'CASCADE');
         $this->forge->addUniqueKey(['show_id', 'seat_number']);
-        $this->forge->createTable('booked_seats');
+        $this->forge->createTable('seat_locks');
     }
 
     public function down()
     {
-        $this->forge->dropTable('booked_seats');
+        $this->forge->dropTable('seat_locks');
     }
 }

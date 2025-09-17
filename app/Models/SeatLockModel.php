@@ -4,13 +4,14 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class BookingSeatModel extends Model
+class SeatLockModel extends Model
 {
-    protected $table = 'booked_seats';
+    protected $table = 'seat_locks';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
-    protected $allowedFields = ['booking_id', 'show_id', 'seat_number', 'price'];
+    protected $allowedFields = ['show_id', 'user_id', 'seat_number', 'locked_until'];
+
     protected $useTimestamps = true;
     protected $dateFormat = 'datetime';
     protected $createdField = 'created_at';

@@ -60,17 +60,17 @@
                                 <tbody>
                                     <?php 
                                     $total = 0;
-                                    foreach ($bookedSeats as $seat): 
-                                        $total += $seat['price'];
+                                    foreach ($seats as $seat): 
+                                        $total += (float)$seat['price'];
                                     ?>
                                         <tr>
                                             <td><?= esc($seat['seat_number']) ?></td>
-                                            <td class="text-right">₹<?= number_format($seat['price'], 2) ?></td>
+                                            <td class="text-right">₹<?= number_format($seat['price'], 0) ?></td>
                                         </tr>
                                     <?php endforeach; ?>
                                     <tr class="table-active">
                                         <th>Total</th>
-                                        <th class="text-right">₹<?= number_format($total, 2) ?></th>
+                                        <th class="text-right">₹<?= number_format($total, 0) ?></th>
                                     </tr>
                                 </tbody>
                             </table>

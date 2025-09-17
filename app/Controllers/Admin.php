@@ -36,10 +36,10 @@ class Admin extends Controller
                                                  ->join('users', 'users.id = bookings.user_id')
                                                  ->join('shows', 'shows.id = bookings.show_id')
                                                  ->join('movies', 'movies.id = shows.movie_id')
-                                                 ->orderBy('bookings.booking_date', 'DESC')
+                                                 ->orderBy('bookings.created_at', 'DESC') // Change this line
                                                  ->findAll(5)
         ];
-
+    
         // Use the new admin header for the dashboard
         echo view('templates/admin_header');
         echo view('admin/dashboard', $data);

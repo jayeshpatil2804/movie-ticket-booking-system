@@ -13,7 +13,7 @@
                             <strong>Time:</strong> <?= date('F d, Y h:i A', strtotime(esc($show['show_time']))) ?><br>
                             <strong>Price:</strong> $<?= esc($show['price']) ?>
                         </p>
-                        <a href="<?= base_url('booking/create/' . $show['id']) ?>" class="btn btn-primary">Book Now</a>
+                        <a href="<?= base_url('booking/seats/' . $show['id']) ?>" class="btn btn-primary">Book Now</a>
                     </div>
                 </div>
             </div>
